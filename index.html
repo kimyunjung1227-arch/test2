@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NowTrip - 미리보기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: white;
+            border-radius: 40px;
+            padding: 20px 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px;
+            padding-top: 10px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .search-bar {
+            margin: 0 20px 20px 20px;
+            background: #F5F5F5;
+            border-radius: 25px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .search-text {
+            font-size: 16px;
+            color: #999;
+        }
+        
+        .collage-container {
+            padding: 0 20px;
+            flex: 1;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 400;
+            color: #000;
+            margin-bottom: 15px;
+        }
+        
+        .collage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .image-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            position: relative;
+        }
+        
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 12px;
+        }
+        
+        .bottom-nav {
+            height: 70px;
+            display: flex;
+            background: white;
+            border-top: 1px solid #E0E0E0;
+            padding: 8px 10px 10px 10px;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+        
+        .content-scroll {
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 110px; /* 하단바 높이만큼 여백 */
+        }
+        
+        .nav-button {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .nav-button svg { width: 24px; height: 24px; margin-bottom: 4px; }
+        .nav-button, .upload-button { color: #9aa0a6; transition: transform .15s ease, color .15s ease; }
+        .nav-button.active { color: #FF3B30; transform: scale(1.1); }
+        .upload-button.active { transform: scale(1.1); }
+        
+        .nav-text {
+            font-size: 12px;
+            color: #000;
+        }
+        
+        .upload-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: #FF3B30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        
+        .upload-icon {
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+        }
+        /* Screens */
+        .screen { display: none; height: calc(100% - 90px); overflow-y: auto; padding-bottom: 110px; }
+        .screen.active { display: block; }
+
+        .trending-header { padding: 10px 20px 0 20px; }
+        .logo-small { font-size: 20px; font-weight: 700; }
+
+        .mosaic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 10px 90px 10px; }
+        .mosaic-item { width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 10px; }
+        .mosaic-item img { width: 100%; height: 100%; object-fit: contain; background: #fff; display: block; }
+        .time-badge { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 10px; }
+        .update-indicator { display:flex; align-items:center; justify-content:center; margin: -6px 0 10px 0; }
+        .dot { width:8px; height:8px; border-radius:4px; background:#34C759; margin-right:8px; animation: pulse 1.8s ease-in-out infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: .9;} 50% { transform: scale(1.4); opacity: .5;} 100% { transform: scale(1); opacity: .9;} }
+
+        /* Search screen */
+        .search-header { padding: 10px 20px 0 20px; }
+        .search-input { margin: 10px 20px; background: #ECECEC; border-radius: 25px; padding: 12px 16px; display: flex; align-items: center; }
+        .search-input input { border: none; outline: none; background: transparent; width: 100%; font-size: 16px; }
+        .cards-row { display: flex; gap: 12px; padding: 0 20px; overflow-x: auto; }
+        .card { width: 110px; flex: 0 0 auto; }
+        .card .thumb { width: 110px; height: 80px; border-radius: 12px; overflow: hidden; background: #ddd; }
+        .card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .card .label { background: #fff; padding: 6px 0; border-radius: 10px; margin-top: 6px; text-align: center; border: 1px solid #EEE; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 20px 20px; }
+        .chip { background: #fff; border: 1px solid #EEE; padding: 8px 12px; border-radius: 12px; font-size: 14px; }
+
+        /* Region screen */
+        .region-header { padding: 10px 20px 0 20px; display: flex; align-items: center; gap: 12px; }
+        .back-btn { padding: 8px; cursor: pointer; }
+        .badge-row { display: flex; gap: 10px; padding: 10px 20px 0 20px; justify-content: center; }
+        .badge { background: #EFEFEF; padding: 8px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px; }
+        .region-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 14px 20px 110px 20px; }
+        .region-item { width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 12px; }
+        .region-item img { width: 100%; height: 100%; object-fit: contain; background: #fff; display: block; }
+
+        /* Upload screen */
+        .upload-header { padding: 10px 20px 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .plus-btn { background: #FF3B30; width: 36px; height: 36px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; cursor: pointer; }
+        .photo-box { margin: 14px 20px 0 20px; width: calc(100% - 40px); aspect-ratio: 16/9; border-radius: 14px; background: #F0F0F0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .field { margin: 14px 20px 0 20px; }
+        .field-title { font-size: 16px; margin-bottom: 8px; }
+        .input-box { background: #F5F5F5; border-radius: 12px; padding: 12px 14px; }
+        .input-box input, .input-box textarea { width: 100%; border: none; outline: none; background: transparent; font-size: 16px; }
+        .upload-cta { margin: 14px 20px 120px 20px; background: #FF7A1A; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer; }
+        .picker-sheet { position: fixed; left: 0; right: 0; bottom: 0; padding: 16px; }
+        .picker-sheet .card { background: #fff; border-radius: 12px; overflow: hidden; }
+        .picker-sheet .btn { padding: 16px; text-align: center; cursor: pointer; }
+        .picker-sheet .sep { height: 1px; background: #EEE; }
+
+        /* Map screen */
+        /* 지도 화면: 로고(상태바 바로 아래) → 검색창 → 지도 */
+        #screen-map.screen { position: relative; height: calc(100% - 90px); padding-bottom: 0; }
+        .map-header { position:absolute; top:10px; left:20px; right:20px; z-index:2; padding:0; }
+        .map-search { position:absolute; top:48px; left:20px; right:20px; z-index:2; background: #ECECEC; border-radius: 25px; padding: 12px 16px; }
+        .map-search input { width: 100%; border: none; outline: none; background: transparent; font-size: 16px; }
+        /* 지도는 검색창 아래부터 시작, 하단바 위까지만 표시 */
+        .map-canvas { position: absolute; top: 100px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+        .map-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .pin { position: absolute; width: 54px; height: 54px; border-radius: 12px; overflow: hidden; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.2); transform: translate(-27px, -27px); }
+        .pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pin.active { border-color: #FF7A1A; border-width: 3px; }
+        /* 지도 인앱 검색 팝업 */
+        .map-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 20; }
+        .map-popup { background:#fff; border-radius:16px; padding:16px; width: calc(100% - 40px); max-width: 360px; margin: 80px auto 0 auto; }
+        .map-popup .title { font-size:16px; font-weight:700; margin-bottom:8px; }
+        .map-popup .input { background:#F3F3F3; border-radius:12px; padding:10px 12px; margin-bottom:10px; }
+        .map-popup .input input { width:100%; border:none; outline:none; background:transparent; font-size:16px; }
+        .map-popup .chips { display:flex; flex-wrap:wrap; gap:8px; }
+        .map-popup .chip { background:#fff; border:1px solid #EEE; padding:8px 10px; border-radius:12px; font-size:14px; cursor:pointer; }
+        .map-popup .footer { display:flex; justify-content:flex-end; margin-top:6px; }
+        .map-popup .footer button { background:none; border:none; color:#FF3B30; padding:10px 12px; cursor:pointer; }
+
+        /* 핀 상세 팝업 */
+        .pin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; z-index: 21; }
+        .pin-popup { background:#fff; border-radius:16px; overflow:hidden; width: calc(100% - 40px); max-width: 360px; margin: 80px auto 0 auto; }
+        .pin-popup .thumb { width:100%; aspect-ratio:1.6; background:#000; }
+        .pin-popup .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+        .pin-popup .body { padding:16px; }
+        .pin-popup .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+        .pin-popup .chip { background:#F1F1F1; border-radius:12px; padding:6px 10px; font-size:14px; }
+        .pin-popup .cta { padding: 0 16px 16px 16px; }
+        .pin-popup .cta button { width:100%; background:#FF7A1A; color:#fff; border:none; border-radius:12px; padding:12px; font-size:16px; font-weight:600; cursor:pointer; }
+
+        /* 지도 드래그 가능 바텀시트 */
+        .map-sheet { position:absolute; left:0; right:0; bottom:0; z-index:5; background:#fff; border-top-left-radius:20px; border-top-right-radius:20px; border:1px solid #EEE; border-bottom:0; overflow:hidden; height:200px; transition:height .3s ease; display:flex; flex-direction:column; }
+        .map-sheet.open { height:calc(100vh - 110px); }
+        .map-sheet .handle-wrapper { position:relative; padding:12px 20px; flex-shrink:0; }
+        .map-sheet .handle { width:40px; height:4px; border-radius:2px; background:#DDD; cursor:grab; margin:0 auto; }
+        .map-sheet .handle:active { cursor:grabbing; }
+        .map-sheet .content { overflow-y:auto; flex:1; min-height:0; }
+        .map-sheet:not(.open) .content { overflow:hidden; }
+        .map-sheet .list { padding:0 20px 20px 20px; }
+
+        /* Profile screen */
+        .profile-header { padding: 10px 20px 0 20px; display: flex; align-items: center; }
+        .avatar { width: 56px; height: 56px; border-radius: 28px; overflow: hidden; margin-right: 12px; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pill { background: #FF7A1A; color: #fff; border-radius: 16px; padding: 6px 10px; margin-left: 8px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 14px 20px 110px 20px; }
+        .grid .cell { aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
+        .grid .cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <span>10:29</span>
+            <span>📶 🔋</span>
+        </div>
+        
+        <div id="screen-home" class="screen active content-scroll">
+          <div class="header">
+              <div class="logo">NowTrip</div>
+          </div>
+          
+          <div class="search-bar">
+              <span class="search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </span>
+              <span class="search-text">검색</span>
+          </div>
+          
+          <div class="collage-container">
+            <div id="home-latest" style="display:block;">
+              <div class="section-title">최신업로드</div>
+              <div class="collage-grid" id="home-latest-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;"></div>
+            </div>
+            
+            <div class="section-title">현재 뜨는 여행지</div>
+            
+            <div class="collage-grid">
+                <div class="image-wrapper">
+                    <img class="link-trending link-top" src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=400&h=400&fit=crop" alt="여행지 1">
+                </div>
+                <div class="image-wrapper">
+                    <img class="link-trending link-top" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop" alt="여행지 2">
+                </div>
+                <div class="image-wrapper">
+                    <img class="link-trending link-top" src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400&h=400&fit=crop" alt="여행지 3">
+                </div>
+                <div class="image-wrapper">
+                    <img class="link-trending link-top" src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&h=400&fit=crop" alt="여행지 4">
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top:10px;">추천 여행지</div>
+            <div class="collage-grid">
+                <div class="image-wrapper">
+                    <img class="link-trending link-reco" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=400&fit=crop" alt="추천 1">
+                </div>
+                <div class="image-wrapper">
+                    <img class="link-trending link-reco" src="https://images.unsplash.com/photo-1505764706515-aa95265c5abc?w=400&h=400&fit=crop" alt="추천 2">
+                </div>
+                <div class="image-wrapper">
+                    <img class="link-trending link-reco" src="https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=400&h=400&fit=crop" alt="추천 3">
+                </div>
+                <div class="image-wrapper">
+                    <img class="link-trending link-reco" src="https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=400&h=400&fit=crop" alt="추천 4">
+                </div>
+            </div>
+            <div class="section-title" style="margin-top:10px;">해시태그 모음</div>
+            <div class="chips" id="home-hashtags"></div>
+          </div>
+        </div>
+
+        <div id="screen-trending" class="screen">
+          <div class="trending-header" style="display:flex; align-items:center; gap:10px; padding:10px 20px 0 20px;">
+            <button id="trending-back" class="back-btn" style="border:none; background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer;">←</button>
+            <div>
+              <div class="logo-small">NowTrip</div>
+              <div id="trending-title" class="section-title" style="margin-top:4px;">현재 뜨는 여행지</div>
+            </div>
+          </div>
+          <div id="selected-view" style="padding: 0 10px 10px 10px; display:none;">
+            <a id="selected-link" href="#" target="_blank" rel="noopener">
+              <div style="width:100%; aspect-ratio: 1.7; overflow:hidden; border-radius:12px;">
+                <img id="selected-img" src="" alt="선택한 이미지" style="width:100%; height:100%; object-fit:cover; display:block;" />
+              </div>
+            </a>
+            <div style="font-size:12px; color:#666; margin-top:6px;">이미지를 탭하면 원본 사이트로 이동합니다.</div>
+          </div>
+          <div id="mosaic" class="mosaic-grid"></div>
+        </div>
+
+        <!-- Search Screen -->
+        <div id="screen-search" class="screen">
+          <div class="search-header" style="display:flex; align-items:center; gap:10px; padding:10px 20px 0 20px;">
+            <button id="search-back" class="back-btn" style="border:none; background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer;">←</button>
+            <div class="logo-small">탐색</div>
+          </div>
+          <div class="search-input">
+            <input id="search-input" placeholder="검색어" />
+          </div>
+          <div style="padding: 0 20px;">
+            <div class="section-title" style="margin-bottom:10px;">추천 지역</div>
+          </div>
+          <div class="cards-row" id="recommend-row"></div>
+          <div style="padding: 20px 20px 10px 20px;">
+            <div class="section-title" style="margin-bottom:10px;">최근 검색지역</div>
+          </div>
+          <div class="chips" id="recent-chips"></div>
+        </div>
+
+        <!-- Region Screen -->
+        <div id="screen-region" class="screen">
+          <div class="region-header">
+            <div id="region-back" class="back-btn">←</div>
+            <div id="region-name" class="logo-small">지역</div>
+          </div>
+          <div class="badge-row">
+            <div class="badge">☀️ <span>맑음, 27°C</span></div>
+            <div class="badge">🚈 <span>교통 원활</span></div>
+          </div>
+          <div style="padding: 10px 20px 0 20px;">
+          <div id="region-top-title" class="section-title" style="text-align:center;">추천 피드</div>
+          </div>
+          <div id="region-grid" class="region-grid"></div>
+        </div>
+
+        <!-- Photo Detail Screen -->
+        <div id="screen-photo" class="screen">
+          <div style="display:flex; align-items:center; padding:10px 10px 0 10px; gap:10px;">
+            <button id="photo-back" style="border:none; background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer;">← 뒤로</button>
+            <div class="section-title" style="margin:0;">사진 상세</div>
+          </div>
+          <div style="width:100%; aspect-ratio: 1; background:#000;">
+            <img id="photo-detail-img" src="" style="width:100%; height:100%; object-fit:cover; display:block;"/>
+          </div>
+          <div style="padding: 16px;">
+            <div id="photo-location" class="section-title" style="margin-bottom:6px;">알 수 없는 위치</div>
+            <div id="photo-tags" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+            <div id="photo-note" style="color:#333; line-height:20px;">작성자의 노트가 없습니다.</div>
+          </div>
+          <div style="padding: 10px 16px 0 16px;">
+            <div class="section-title" style="margin-bottom:10px;">댓글</div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="photo-cmt-input" placeholder="댓글을 입력하세요" style="flex:1; height:44px; background:#F5F5F5; border:none; border-radius:12px; padding:0 12px;"/>
+              <button id="photo-cmt-add" style="background:#FF7A1A; color:#fff; border:none; border-radius:10px; padding:10px 14px;">등록</button>
+            </div>
+            <div id="photo-cmt-list" style="margin-top:12px; display:grid; gap:10px;"></div>
+          </div>
+        </div>
+
+        <!-- Upload Screen -->
+        <div id="screen-upload" class="screen">
+          <div class="upload-header" style="display:flex; align-items:center; justify-content:space-between; padding:10px 20px 0 20px;">
+            <button id="upload-back" class="back-btn" style="border:none; background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer;">←</button>
+            <div class="logo-small">NOW.Trip</div>
+            <div style="width:40px;"></div>
+          </div>
+          <div class="photo-box" id="photo-box">
+            <div id="photo-plus" style="text-align:center; color:#999;">
+              <div style="font-size:36px;">＋</div>
+              <div>사진 추가</div>
+            </div>
+            <img id="photo-preview" src="" alt="preview" />
+          </div>
+          <div class="field">
+            <div class="field-title">위치 태그</div>
+            <div class="input-box"><input id="up-location" placeholder="예: 서울 강남구" /></div>
+          </div>
+          <div class="field">
+            <div class="field-title">해시태그</div>
+            <div id="up-tags-preview" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
+            <div class="input-box" style="display:flex; gap:8px; align-items:center;">
+              <input id="up-hashtags" placeholder="#해시태그 입력 후 Enter 또는 추가 버튼" />
+              <button id="up-hashtags-add" style="background:#FF7A1A;color:#fff;border:none;border-radius:10px;padding:8px 12px;flex:0 0 auto;">추가</button>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-title">개인 노트</div>
+            <div class="input-box"><textarea id="up-note" rows="6" placeholder="내용을 입력하세요"></textarea></div>
+          </div>
+          <button id="upload-cta" class="upload-cta">업로드</button>
+        </div>
+
+        <!-- Map Screen -->
+        <div id="screen-map" class="screen">
+          <div class="map-header">
+            <div class="logo-small">NOW.Trip</div>
+          </div>
+          <div class="map-search">
+            <input id="map-query" placeholder="지역 검색" />
+          </div>
+          <div class="map-canvas" id="map-canvas">
+            <img class="map-bg" id="map-bg" src="custom-map.jpg.jpeg" />
+            <!-- pins rendered by JS -->
+          </div>
+          <!-- 핀 상세 팝업 -->
+          <div id="pin-overlay" class="pin-overlay">
+            <div class="pin-popup" role="dialog" aria-modal="true">
+              <div class="thumb"><img id="pin-img" src="" alt="선택 이미지" /></div>
+              <div class="body">
+                <div id="pin-title" style="font-size:16px;font-weight:700;"></div>
+                <div id="pin-chips" class="chips"></div>
+                <div id="pin-note" style="color:#333;line-height:20px;margin-top:8px;"></div>
+              </div>
+              <div class="cta"><button id="pin-close">닫기</button></div>
+            </div>
+          </div>
+          <div id="map-sheet" class="map-sheet">
+            <div class="handle-wrapper">
+              <div class="handle" id="map-sheet-handle"></div>
+            </div>
+            <div class="content">
+              <div class="list" id="map-sheet-list">
+                <!-- 카드들이 JS로 추가됩니다 -->
+              </div>
+            </div>
+          </div>
+          <div id="map-popup-overlay" class="map-popup-overlay">
+            <div class="map-popup" role="dialog" aria-modal="true">
+              <div class="title">지역 검색</div>
+              <div class="input"><input id="map-popup-input" placeholder="예: 서울, 부산, 제주..."/></div>
+              <div id="map-popup-suggest-title" style="margin-bottom:6px; color:#666;">추천 지역</div>
+              <div id="map-popup-chips" class="chips"></div>
+              <div class="footer"><button id="map-popup-close">닫기</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="screen-profile" class="screen">
+          <div class="profile-header">
+            <div class="avatar"><img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"/></div>
+            <div>
+              <div class="logo-small">여행좋아하는사람</div>
+              <div style="color:#666; margin-top:2px;">LV.5</div>
+            </div>
+          </div>
+          <div style="padding: 14px 20px 0 20px;">
+            <div class="section-title">획득 뱃지</div>
+          </div>
+          <div class="chips" id="profile-badges" style="padding-top: 0;"></div>
+          <div style="padding: 14px 20px 0 20px; display:flex; align-items:center;">
+            <div style="font-size:24px; font-weight:700;">2000P</div>
+            <div class="pill" style="margin-left:10px;">내 포인트</div>
+            <div class="pill" style="background:#FFA45B; margin-left:8px;">포인트 적립</div>
+          </div>
+          <div style="padding: 14px 20px 0 20px;">
+            <div class="section-title">내가 올린 사진</div>
+          </div>
+          <div class="grid" id="profile-grid"></div>
+        </div>
+        
+        <div class="bottom-nav" id="bottom-nav">
+            <div class="nav-button active" data-tab="home">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7"></path><path d="M9 22V12h6v10"></path></svg>
+                <div class="nav-text">홈</div>
+            </div>
+            <div class="nav-button" data-tab="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <div class="nav-text">검색</div>
+            </div>
+            <div class="upload-button" data-tab="upload">
+                <div class="upload-icon">↑</div>
+            </div>
+            <div class="nav-button" data-tab="map">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 1 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <div class="nav-text">지도</div>
+            </div>
+            <div class="nav-button" data-tab="profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <div class="nav-text">프로필</div>
+            </div>
+        </div>
+    </div>
+    <script>
+      // 이미지 폴백 유틸
+      function attachFallback(img){
+        if(!img || img.__fallbackAttached) return;
+        // 지도 배경은 고정 이미지 유지 (폴백 제외)
+        if(img.id === 'map-bg' || img.dataset.fixed === 'true') return;
+        img.__fallbackAttached = true;
+        const onErr = () => {
+          img.onerror = null;
+          img.src = `https://picsum.photos/seed/nowtrip${Math.floor(Math.random()*10000)}/800/800`;
+          img.style.background = '#fff';
+        };
+        img.onerror = onErr;
+        // 5초 내 로드 실패 시 강제 폴백
+        let settled = false;
+        img.addEventListener('load', () => { settled = true; }, { once: true });
+        setTimeout(() => {
+          if(!settled || !img.complete || img.naturalWidth === 0){
+            try { onErr(); } catch(e) {}
+          }
+        }, 5000);
+      }
+      function hookAllImages(){ document.querySelectorAll('img').forEach(attachFallback); }
+      // 최신업로드(초기 4장 세팅)
+      window.__latest = window.__latest || [
+        { src: 'https://images.unsplash.com/photo-1495298599282-d8920eb5009f?q=80&w=800&auto=format&fit=crop' },
+        { src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=800&auto=format&fit=crop' },
+        { src: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },
+        { src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop' },
+      ];
+      function renderLatest(){
+        const grid = document.getElementById('home-latest-grid');
+        if(!grid) return;
+        grid.innerHTML='';
+        const items = window.__latest;
+        for(let i=0;i<4;i++){
+          const it = items[i];
+          const cell = document.createElement('div'); cell.className='image-wrapper';
+          if(it){
+            cell.style.position='relative';
+            const im=document.createElement('img'); im.src=it.src; attachFallback(im); cell.appendChild(im);
+            const minutes = Math.max(0, Math.floor((Date.now() - (it.ts||Date.now()))/60000));
+            const label = minutes<=0 ? '방금' : `${minutes}분 전`;
+            const badge = document.createElement('div'); badge.className='time-badge'; badge.textContent=label; cell.appendChild(badge);
+            cell.addEventListener('click', () => { const t=document.getElementById('trending-title'); if(t) t.textContent='최신업로드'; showScreen('trending'); if (mosaic.childElementCount === 0) addItems(24); });
+          }
+          grid.appendChild(cell);
+        }
+      }
+      renderLatest();
+      const __mo = new MutationObserver(hookAllImages); __mo.observe(document.documentElement, {childList:true, subtree:true});
+      hookAllImages();
+
+      const screens = {
+        home: document.getElementById('screen-home'),
+        trending: document.getElementById('screen-trending'),
+        search: document.getElementById('screen-search'),
+        region: document.getElementById('screen-region'),
+        upload: document.getElementById('screen-upload'),
+        map: document.getElementById('screen-map'),
+        profile: document.getElementById('screen-profile'),
+        photo: document.getElementById('screen-photo'),
+      };
+
+      // 지도 배경: 예시와 유사한 한국 지도 사용, 실패 시 위치지도 폴백
+      const mapBg = document.getElementById('map-bg');
+      if(mapBg){
+        // 고정 이미지 표시 플래그
+        mapBg.setAttribute('data-fixed', 'true');
+
+        // 후보 URL들을 순차적으로 시도 (성공 시 중단)
+        const candidateUrls = [
+          // 1) 현재 폴더(루트) 파일
+          'custom-map.jpg.jpeg',
+          'custom-map.jpg',
+          // 2) assets 폴더에 있을 수 있는 경우
+          'assets/custom-map.jpg.jpeg',
+          'assets/custom-map.jpg',
+          // 3) 외부 온라인 지도
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Provinces_of_South_Korea_map.png/800px-Provinces_of_South_Korea_map.png',
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/South_Korea_location_map.svg/1024px-South_Korea_location_map.svg.png'
+        ];
+
+        let idx = 0;
+        const tryNext = () => {
+          if(idx >= candidateUrls.length) return;
+          const next = candidateUrls[idx++];
+          mapBg.onerror = tryNext;
+          mapBg.src = next;
+        };
+
+        // 로드 지연 시 다음 후보로 이동
+        const timeoutMs = 2500;
+        const armTimeout = () => {
+          setTimeout(() => {
+            if(!mapBg.complete || mapBg.naturalWidth === 0){ tryNext(); }
+          }, timeoutMs);
+        };
+        mapBg.addEventListener('load', () => {/* 성공 */}, { once: true });
+
+        // 최초 트리거
+        tryNext();
+        armTimeout();
+      }
+
+      function showScreen(name){
+        Object.values(screens).forEach(el => el.classList.remove('active'));
+        screens[name].classList.add('active');
+        // 화면 전환 시 스크롤을 맨 위로
+        screens[name].scrollTop = 0;
+        // 트렌딩 최초 진입 시 화면을 충분히 채우도록 로드
+        if(name === 'trending' && mosaic.childElementCount === 0){
+          addItems(24);
+        }
+      }
+
+      // 홈 썸네일: 시간 배지 추가 + 트렌딩 화면 이동
+      document.querySelectorAll('.link-trending').forEach((img, idx) => {
+        attachFallback(img);
+        // 시간 배지
+        const wrap = img.closest('.image-wrapper');
+        if(wrap && !wrap.querySelector('.time-badge')){
+          const badge = document.createElement('div');
+          badge.className = 'time-badge';
+          const minutesAgo = (idx % 59) + 1;
+          badge.textContent = `${minutesAgo}분 전`;
+          wrap.appendChild(badge);
+        }
+        img.addEventListener('click', () => {
+          const titleEl = document.getElementById('trending-title');
+          if(img.classList.contains('link-reco')) {
+            titleEl.textContent = '추천 여행지';
+          } else {
+            titleEl.textContent = '현재 뜨는 여행지';
+          }
+          showScreen('trending');
+          if (mosaic.childElementCount === 0) addItems(24);
+        });
+      });
+
+      // 홈 검색 바 클릭 시 검색 화면으로 이동
+      const homeSearch = document.querySelector('#screen-home .search-bar');
+      if (homeSearch) {
+        homeSearch.addEventListener('click', () => {
+          activateTab('search');
+          showScreen('search');
+          document.getElementById('search-input').focus();
+        });
+      }
+
+      // 홈 업데이트 시간 표시
+      const homeUpdated = document.getElementById('home-updated');
+      function setHomeUpdated(){
+        const t = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        if(homeUpdated) homeUpdated.textContent = `업데이트 ${t}`;
+      }
+      setHomeUpdated();
+
+      // 홈 해시태그 모음 렌더링 및 클릭 이동
+      const homeHashWrap = document.getElementById('home-hashtags');
+      if(homeHashWrap){
+        const tags = ['가을풍경','단풍','낙엽','호수','바다','산책','야경','축제','맛집','드라이브'];
+        homeHashWrap.innerHTML = '';
+        tags.forEach(tag => {
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = `#${tag}`;
+          chip.addEventListener('click', () => openRegion(`#${tag}`));
+          homeHashWrap.appendChild(chip);
+        });
+      }
+
+      // 하단바 활성화 토글
+      const nav = document.getElementById('bottom-nav');
+      function activateTab(tab){
+        nav.querySelectorAll('.nav-button, .upload-button').forEach(b => b.classList.remove('active'));
+        const btn = nav.querySelector(`[data-tab="${tab}"]`);
+        if(btn) btn.classList.add('active');
+      }
+      nav.querySelectorAll('.nav-button, .upload-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activateTab(btn.dataset.tab);
+          if(btn.dataset.tab === 'home') showScreen('home');
+          if(btn.dataset.tab === 'search') showScreen('search');
+          if(btn.dataset.tab === 'upload') showScreen('upload');
+          if(btn.dataset.tab === 'map') showScreen('map');
+          if(btn.dataset.tab === 'profile') showScreen('profile');
+        });
+      });
+
+      // 공통 뒤로가기: 홈으로 이동
+      const goHome = () => { activateTab('home'); showScreen('home'); };
+      const tb = document.getElementById('trending-back'); if(tb) tb.addEventListener('click', goHome);
+      const sb = document.getElementById('search-back'); if(sb) sb.addEventListener('click', goHome);
+      const ub = document.getElementById('upload-back'); if(ub) ub.addEventListener('click', goHome);
+
+      // 트렌딩 화면 무한 스크롤 (사용자 지정 이미지 목록 순환)
+      const mosaic = document.getElementById('mosaic');
+      const userImages = [
+        'https://images.unsplash.com/photo-1495298599282-d8920eb5009f?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1500534311325-3df9c2c7f06e?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1500534311218-1c8dbbfb0d5e?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1600&auto=format&fit=crop'
+      ];
+      let imgIndex = 0;
+      const nextImg = () => {
+        const url = userImages[imgIndex % userImages.length];
+        imgIndex += 1;
+        return url;
+      };
+
+      function addItems(count=12){
+        for(let i=0;i<count;i++){
+          const div = document.createElement('div');
+          div.className = 'mosaic-item';
+          div.style.position = 'relative';
+          const url = nextImg();
+          const img = document.createElement('img');
+          img.src = url; attachFallback(img);
+          div.appendChild(img);
+          const badge = document.createElement('div');
+          const minutesAgo = ((mosaic.childElementCount + i) % 59) + 1;
+          badge.className = 'time-badge';
+          badge.textContent = `${minutesAgo}분 전`;
+          div.appendChild(badge);
+          div.addEventListener('click', () => {
+            const title = document.getElementById('trending-title').textContent || '여행지';
+            openPhotoDetail({ url, location: title, tags: ['#여행'], note: '현장의 분위기를 담았어요.' });
+          });
+          mosaic.appendChild(div);
+        }
+      }
+      // 초기에는 필요시 채움 (홈에서 트렌딩으로 진입 때도 보완)
+      // addItems는 showScreen에서 호출됨
+
+      // 검색 화면 데이터 (추천/최근)
+      const recommendRow = document.getElementById('recommend-row');
+      const recommended = [
+        { title: '서울', uri: 'https://images.unsplash.com/photo-1549692520-acc6669e2f0c?w=400&h=400&fit=crop' },
+        { title: '부산', uri: 'https://images.unsplash.com/photo-1606660585005-8c2f2740d37a?w=400&h=400&fit=crop' },
+        { title: '제주', uri: 'https://images.unsplash.com/photo-1519060825752-c7aaf69de7a7?w=400&h=400&fit=crop' },
+        { title: '경주', uri: 'https://images.unsplash.com/photo-1582107922510-81c3e41e80be?w=400&h=400&fit=crop' },
+      ];
+      recommended.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<div class="thumb"><img src="${item.uri}"/></div><div class="label">${item.title}</div>`;
+        recommendRow.appendChild(card);
+      });
+      setTimeout(() => recommendRow.querySelectorAll('img').forEach(attachFallback));
+
+      const recentChips = document.getElementById('recent-chips');
+      let recent = ['강릉','전주 한옥마을','전주','경주 불국사'];
+      function renderRecent(){
+        recentChips.innerHTML = '';
+        recent.forEach(r => {
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = r;
+          chip.addEventListener('click', () => openRegion(r));
+          recentChips.appendChild(chip);
+        });
+      }
+      renderRecent();
+
+      const searchInput = document.getElementById('search-input');
+      searchInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter'){
+          const q = searchInput.value.trim();
+          if(!q) return;
+          recent = [q, ...recent.filter(v => v !== q)].slice(0, 8);
+          searchInput.value = '';
+          renderRecent();
+          openRegion(q);
+        }
+      });
+
+      // 추천 카드 클릭 시 지역 화면 이동
+      recommendRow.addEventListener('click', (e) => {
+        const card = e.target.closest('.card');
+        if(!card) return;
+        const name = card.querySelector('.label')?.textContent || '지역';
+        openRegion(name);
+      });
+
+      // 지역 화면 로직
+      const regionGrid = document.getElementById('region-grid');
+      const regionNameEl = document.getElementById('region-name');
+      document.getElementById('region-back').addEventListener('click', () => {
+        showScreen('search');
+        activateTab('search');
+      });
+
+      let regionSeed = 1;
+      let regionCount = 0; // 누적 추가된 이미지 수
+      let bloomInserted = false; // 개화정보 제목 삽입 여부
+      let recoInserted = false; // 가볼만한 곳 섹션 삽입 여부
+      function addRegionItems(count=10){
+        for(let i=0;i<count;i++){
+          // 6장 채우고 개화정보 제목을 한 번만 삽입
+          if(!bloomInserted && regionCount >= 6){
+            const mid = document.createElement('div');
+            mid.style.cssText = 'grid-column: 1 / -1; text-align:center; padding:4px 0;';
+            const name = regionNameEl.textContent || '지역';
+            mid.innerHTML = `<div class="section-title" style="font-weight:700; text-align:center;">${name} 개화상황</div>`;
+            regionGrid.appendChild(mid);
+            bloomInserted = true;
+          }
+          // 개화정보 뒤로 6장 지난 뒤 가볼만한 곳 섹션 삽입(1회)
+          if(bloomInserted && !recoInserted && regionCount >= 12){
+            const sec = document.createElement('div');
+            sec.style.cssText = 'grid-column: 1 / -1; padding:4px 0;';
+            const nm = regionNameEl.textContent || '지역';
+            sec.innerHTML = `<div class="section-title" style="font-weight:700; text-align:center;">${nm} 가볼만한 곳</div>`;
+            regionGrid.appendChild(sec);
+            // 6개 추천 사진(2열 x 3행)
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'grid-column: 1 / -1; display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding: 0 0 0 0;';
+            for(let k=0;k<6;k++){
+              const cell = document.createElement('div');
+              cell.className = 'region-item';
+              cell.style.position = 'relative';
+              const img = document.createElement('img');
+              img.src = `https://source.unsplash.com/random/600x600?sig=${regionSeed++}&spot,travel`;
+              attachFallback(img);
+              cell.appendChild(img);
+              wrap.appendChild(cell);
+            }
+            regionGrid.appendChild(wrap);
+            recoInserted = true;
+          }
+          const div = document.createElement('div');
+          div.className = 'region-item';
+          div.style.position = 'relative';
+          const img = document.createElement('img');
+          if(bloomInserted){
+            img.src = `https://source.unsplash.com/random/600x600?sig=${regionSeed++}&flower,blossom,spring`;
+          } else {
+            img.src = `https://source.unsplash.com/random/600x600?sig=${regionSeed++}&travel,landscape`;
+          }
+          attachFallback(img);
+          div.appendChild(img);
+          const badge = document.createElement('div');
+          const minutesAgo = ((regionCount + i) % 59) + 1;
+          badge.className = 'time-badge';
+          badge.textContent = `${minutesAgo}분 전`;
+          div.appendChild(badge);
+          regionGrid.appendChild(div);
+          regionCount += 1;
+        }
+      }
+      let lastScreen = 'home';
+      function openRegion(name){
+        regionNameEl.textContent = name;
+        regionGrid.innerHTML = '';
+        regionSeed = 1;
+        regionCount = 0;
+        bloomInserted = false;
+        addRegionItems(20);
+        showScreen('region');
+      }
+
+      // 지역 화면 무한 스크롤
+      document.addEventListener('scroll', () => {
+        if(!screens.region.classList.contains('active')) return;
+        const nearBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 180;
+        if(nearBottom){ addRegionItems(12); }
+      });
+
+      // 지역 그리드에서 이미지 클릭 시 사진 상세로 이동
+      regionGrid.addEventListener('click', (e) => {
+        const img = e.target.closest('img');
+        if(!img) return;
+        openPhotoDetail({ url: img.getAttribute('src'), location: regionNameEl.textContent || '지역', tags: ['#명소'], note: '현장 사진입니다.' });
+      });
+
+      // 상세 화면 로직
+      function openPhotoDetail({ url, location, tags, note }){
+        const big = document.getElementById('photo-detail-img');
+        const safe = url && typeof url === 'string' ? url : `https://picsum.photos/seed/photodetail_web/1200/1200`;
+        // 강제 폴백 + 타임아웃 폴백
+        const fallbackUrl = `https://picsum.photos/seed/photodetail_web_fallback_${Date.now()}/1200/1200`;
+        let settled = false;
+        big.onerror = () => {
+          if (settled) return;
+          settled = true;
+          big.onerror = null;
+          big.src = fallbackUrl;
+        };
+        big.onload = () => { settled = true; };
+        big.removeAttribute('src');
+        big.src = safe;
+        setTimeout(() => { if(!settled || !big.complete || big.naturalWidth === 0){ big.src = fallbackUrl; } }, 4000);
+        attachFallback(big);
+        document.getElementById('photo-location').textContent = location || '알 수 없는 위치';
+        const t = document.getElementById('photo-tags');
+        t.innerHTML = '';
+        (tags||[]).forEach(tag => {
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.textContent = tag;
+          t.appendChild(chip);
+        });
+        document.getElementById('photo-note').textContent = note || '';
+        renderComments();
+        lastScreen = Object.keys(screens).find(k => screens[k].classList.contains('active')) || 'home';
+        showScreen('photo');
+      }
+
+      // 별도 오버레이는 사용하지 않음 (바텀시트에 통합)
+      const cmtInput = document.getElementById('photo-cmt-input');
+      const cmtList = document.getElementById('photo-cmt-list');
+      const nowKR = () => new Date().toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const nicks = ['바다여행러','한강산책러','달빛사진가','오로라헌터','캠핑좋아','순수한여행가','풍경수집가'];
+      const pickNick = () => nicks[Math.floor(Math.random()*nicks.length)];
+      let commentsData = [
+        { id: 'c1', author:'바다러버', time: nowKR(), text: '멋져요!', replies: [{ id: 'r1', author:'여행이 너무 조하요', time: nowKR(), text: '동감입니다!' }] },
+        { id: 'c2', author:'여행이 너무 조하요', time: nowKR(), text: '좋은 정보 감사해요', replies: [] }
+      ];
+      function renderComments(){
+        cmtList.innerHTML = '';
+        commentsData.forEach(c => {
+          const wrap = document.createElement('div');
+          wrap.style.cssText = 'background:#fff;border:1px solid #EEE;border-radius:10px;padding:10px;';
+          const head = document.createElement('div');
+          head.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#666;font-size:12px;';
+          const name = document.createElement('strong'); name.textContent = c.author || '작성자'; name.style.color='#000'; name.style.fontSize='13px';
+          const time = document.createElement('span'); time.textContent = c.time || nowKR();
+          head.appendChild(name); head.appendChild(time); wrap.appendChild(head);
+          const text = document.createElement('div');
+          text.textContent = c.text;
+          text.style.cssText='margin-bottom:6px;line-height:20px;';
+          wrap.appendChild(text);
+          // replies
+          if(c.replies.length){
+            c.replies.forEach(r => {
+              const rdiv = document.createElement('div');
+              rdiv.style.cssText = 'margin-left:12px;background:#FAFAFA;border:1px solid #F0F0F0;border-radius:8px;padding:8px;margin-top:6px;';
+              const rhead = document.createElement('div');
+              rhead.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px;color:#666;font-size:12px;';
+              const rname = document.createElement('strong'); rname.textContent = r.author || '작성자'; rname.style.color='#000'; rname.style.fontSize='13px';
+              const rtime = document.createElement('span'); rtime.textContent = r.time || nowKR();
+              rhead.appendChild(rname); rhead.appendChild(rtime); rdiv.appendChild(rhead);
+              const rtext = document.createElement('div'); rtext.textContent = r.text; rtext.style.lineHeight='20px';
+              rdiv.appendChild(rtext);
+              wrap.appendChild(rdiv);
+            });
+          }
+          // reply box
+          const box = document.createElement('div');
+          box.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:8px;';
+          const inp = document.createElement('input');
+          inp.placeholder = '답글 입력';
+          inp.style.cssText = 'flex:1;height:36px;background:#F8F8F8;border:none;border-radius:10px;padding:0 10px;';
+          const btn = document.createElement('button');
+          btn.textContent = '등록';
+          btn.style.cssText = 'background:#FF7A1A;color:#fff;border:none;border-radius:8px;padding:8px 12px;';
+          btn.addEventListener('click', () => {
+            const t = inp.value.trim(); if(!t) return;
+            c.replies.unshift({ id: 'r'+Date.now(), author: pickNick(), time: nowKR(), text: t });
+            renderComments();
+          });
+          box.appendChild(inp); box.appendChild(btn); wrap.appendChild(box);
+          cmtList.appendChild(wrap);
+        });
+      }
+      document.getElementById('photo-cmt-add').addEventListener('click', () => {
+        const v = cmtInput.value.trim();
+        if(!v) return; commentsData.unshift({ id:'c'+Date.now(), author: pickNick(), time: nowKR(), text:v, replies:[] }); cmtInput.value=''; renderComments();
+      });
+      document.getElementById('photo-back').addEventListener('click', () => showScreen(lastScreen));
+      // 업로드 버튼: 누적 2x2(최대 4) 유지, 이후는 우하단부터 교체
+      const uploadBtn = document.getElementById('upload-cta');
+      if(uploadBtn){
+        uploadBtn.addEventListener('click', () => {
+          // 업로드된 프리뷰를 이용해 홈 상단에 추가하고 홈으로 이동
+          const img = document.getElementById('photo-preview');
+          const src = img && img.getAttribute('src') ? img.getAttribute('src') : `https://source.unsplash.com/random/1200x800?travel`;
+          const loc = (document.getElementById('up-location').value || '').trim();
+          const tagsRaw = (document.getElementById('up-hashtags').value || '').trim();
+          const note = (document.getElementById('up-note').value || '').trim();
+          const extra = tagsRaw ? tagsRaw.split(',').map(t => normalizeTag(t)).filter(Boolean) : [];
+          const tags = Array.from(new Set([...(window.__upTags || []), ...extra]));
+
+          // 최신업로드 갱신(좌상단 내 업로드)
+          window.__latest = [{ src }, ...window.__latest].slice(0,4);
+          renderLatest();
+
+          // 최최신업로드 섹션 제거: 최신업로드만 유지
+          // 홈으로 이동 및 탭 활성화
+          activateTab('home'); showScreen('home');
+          // 스크롤 최상단
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      // 업로드 화면: 해시태그 칩(Enter/터치 추가 + 터치 제거)
+      const upTagsInput = document.getElementById('up-hashtags');
+      const upTagsAdd = document.getElementById('up-hashtags-add');
+      const upTagsPreview = document.getElementById('up-tags-preview');
+      window.__upTags = window.__upTags || [];
+      function normalizeTag(raw){
+        const t = (raw||'').trim().replace(/\s+/g, '');
+        if(!t) return '';
+        return t.startsWith('#') ? t : `#${t}`;
+      }
+      function renderUpTags(){
+        upTagsPreview.innerHTML = '';
+        window.__upTags.forEach(tag => {
+          const chip = document.createElement('div');
+          chip.style.cssText = 'background:#F1F1F1;padding:6px 10px;border-radius:12px;color:#333;font-size:14px;cursor:pointer;';
+          chip.textContent = tag;
+          chip.title = '탭하여 제거';
+          chip.addEventListener('click', () => {
+            window.__upTags = window.__upTags.filter(t => t !== tag);
+            renderUpTags();
+          });
+          upTagsPreview.appendChild(chip);
+        });
+      }
+      function addUpTag(){
+        const tag = normalizeTag(upTagsInput.value);
+        if(!tag) return;
+        if(!window.__upTags.includes(tag)) window.__upTags.unshift(tag);
+        upTagsInput.value = '';
+        renderUpTags();
+      }
+      if(upTagsInput){
+        upTagsInput.addEventListener('keydown', (e) => { if(e.key==='Enter'){ e.preventDefault(); addUpTag(); }});
+      }
+      if(upTagsAdd){ upTagsAdd.addEventListener('click', addUpTag); }
+
+      // 업로드 화면: 플러스/사진 박스 클릭 시 픽커 표시
+      function openPicker(){
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4)';
+        overlay.addEventListener('click', () => document.body.removeChild(overlay));
+        const sheet = document.createElement('div');
+        sheet.className = 'picker-sheet';
+        sheet.innerHTML = `
+          <div class="card">
+            <div class="btn" id="pick-camera">카메라로 촬영</div>
+            <div class="sep"></div>
+            <div class="btn" id="pick-gallery">갤러리에서 선택</div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="btn" id="pick-cancel" style="color:#FF3B30;">취소</div>
+          </div>`;
+        overlay.appendChild(sheet);
+        document.body.appendChild(overlay);
+        function setPreview(url){
+          const img = document.getElementById('photo-preview');
+          const plus = document.getElementById('photo-plus');
+          img.setAttribute('src', url);
+          img.style.display = 'block';
+          plus.style.display = 'none';
+        }
+        sheet.querySelector('#pick-camera').addEventListener('click', () => { setPreview('https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=1200'); document.body.removeChild(overlay); });
+        sheet.querySelector('#pick-gallery').addEventListener('click', () => { setPreview('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200'); document.body.removeChild(overlay); });
+        sheet.querySelector('#pick-cancel').addEventListener('click', () => document.body.removeChild(overlay));
+      }
+      const photoPlus = document.getElementById('photo-plus');
+      const photoBox = document.getElementById('photo-box');
+      const photoPreview = document.getElementById('photo-preview');
+      if(photoPlus) photoPlus.addEventListener('click', openPicker);
+      if(photoBox) photoBox.addEventListener('click', openPicker);
+      if(photoPreview) photoPreview.addEventListener('click', openPicker);
+
+      // 간단한 이미지 기반 지도: 핀을 상대 좌표로 배치
+      const mapCanvas = document.getElementById('map-canvas');
+      let pins = [
+        { x: 46, y: 36, title: '서울', url: 'https://images.unsplash.com/photo-1549692520-acc6669e2f0c?w=300' },
+        { x: 50, y: 42, title: '인천', url: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=300' },
+        { x: 44, y: 43, title: '수원', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300' },
+        { x: 38, y: 49, title: '대전', url: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=300' },
+        { x: 33, y: 60, title: '광주', url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=300' },
+        { x: 53, y: 62, title: '부산', url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=300' },
+        { x: 49, y: 58, title: '대구', url: 'https://images.unsplash.com/photo-1505764706515-aa95265c5abc?w=300' },
+        { x: 56, y: 56, title: '울산', url: 'https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=300' },
+        { x: 60, y: 70, title: '포항', url: 'https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=300' },
+        { x: 30, y: 40, title: '전주', url: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=300' },
+        { x: 36, y: 34, title: '군산', url: 'https://images.unsplash.com/photo-1500534311325-3df9c2c7f06e?w=300' },
+        { x: 25, y: 30, title: '목포', url: 'https://images.unsplash.com/photo-1500534311218-1c8dbbfb0d5e?w=300' },
+        { x: 48, y: 80, title: '제주', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300' },
+        { x: 53, y: 28, title: '춘천', url: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=300' },
+        { x: 58, y: 33, title: '강릉', url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=300' },
+      ];
+      const originalPins = [...pins];
+      function renderPins(highlight){
+        mapCanvas.querySelectorAll('.pin').forEach(n=>n.remove());
+        pins.forEach(p => {
+          const pin = document.createElement('div');
+          pin.className = 'pin' + (highlight===p.title ? ' active' : '');
+          pin.style.left = p.x + '%';
+          pin.style.top = p.y + '%';
+          const im = document.createElement('img'); im.src = p.url; attachFallback(im); pin.appendChild(im);
+          pin.addEventListener('click', () => {
+            window.__pinDetail = p;
+            // 중간 상태로 먼저 띄우고, 사용자가 올리면 상세가 보임
+            mapSheet.style.height = MIN_H + 'px';
+            renderHotelCards();
+          });
+          mapCanvas.appendChild(pin);
+        });
+      }
+      renderPins();
+
+      // 지도 빈 영역 클릭 시: 기존 팝업(콜라주) 형태 중간 높이로 열기
+      if(mapCanvas){
+        mapCanvas.addEventListener('click', (e) => {
+          if(e.target.closest('.pin')) return; // 핀 클릭은 제외
+          window.__pinDetail = null;
+          mapSheet.style.height = MIN_H + 'px';
+          renderHotelCards();
+        });
+      }
+
+      // 지도 인앱 검색 팝업 로직
+      const mapPopup = document.getElementById('map-popup-overlay');
+      const mapPopupInput = document.getElementById('map-popup-input');
+      const mapPopupClose = document.getElementById('map-popup-close');
+      const mapPopupChips = document.getElementById('map-popup-chips');
+      const mapPopupSuggestTitle = document.getElementById('map-popup-suggest-title');
+      const regionAttractions = {
+        '서울': ['경복궁', '남산타워', '북촌한옥마을', '한강공원'],
+        '부산': ['해운대', '감천문화마을', '광안리', '태종대'],
+        '제주': ['성산일출봉', '협재해수욕장', '우도', '한라산'],
+        '경주': ['불국사', '대릉원', '첨성대', '보문정']
+      };
+      const regionKeys = Object.keys(regionAttractions);
+      function renderPopupChips(key){
+        mapPopupChips.innerHTML = '';
+        if(key){
+          mapPopupSuggestTitle.textContent = `${key} 대표 관광지`;
+          regionAttractions[key].forEach(name => {
+            const chip = document.createElement('div'); chip.className='chip'; chip.textContent = `#${name}`;
+            chip.addEventListener('click', () => { mapPopup.style.display='none'; focusRegion(key); });
+            mapPopupChips.appendChild(chip);
+          });
+        } else {
+          mapPopupSuggestTitle.textContent = '추천 지역';
+          regionKeys.forEach(rk => {
+            const chip = document.createElement('div'); chip.className='chip'; chip.textContent = rk;
+            chip.addEventListener('click', () => { mapPopup.style.display='none'; focusRegion(rk); });
+            mapPopupChips.appendChild(chip);
+          });
+        }
+      }
+      // 검색창 포커스 시 팝업 열기
+      const mapQuery = document.getElementById('map-query');
+      if(mapQuery){
+        mapQuery.addEventListener('focus', () => {
+          mapPopup.style.display = 'block';
+          mapPopupInput.value = '';
+          renderPopupChips(null);
+          setTimeout(() => mapPopupInput.focus(), 0);
+        });
+      }
+      if(mapPopupClose){ mapPopupClose.addEventListener('click', () => { mapPopup.style.display='none'; }); }
+      if(mapPopup){ mapPopup.addEventListener('click', (e) => { if(e.target === mapPopup) mapPopup.style.display='none'; }); }
+      if(mapPopupInput){
+        mapPopupInput.addEventListener('input', () => {
+          const q = mapPopupInput.value.trim();
+          const key = q ? regionKeys.find(k => k.includes(q) || q.includes(k)) : null;
+          renderPopupChips(key || null);
+        });
+        mapPopupInput.addEventListener('keydown', (e) => {
+          if(e.key==='Enter'){
+            const q = mapPopupInput.value.trim();
+            if(!q) return;
+            const key = regionKeys.find(k => k.includes(q) || q.includes(k));
+            if(key){ mapPopup.style.display='none'; focusRegion(key); }
+          }
+        });
+      }
+      mapQuery.addEventListener('keydown', (e) => {
+        if(e.key==='Enter'){
+          const q = mapQuery.value.trim();
+          const target = pins.find(p=>p.title.includes(q));
+          if(target){
+            renderPins(target.title);
+            // 간단히 스크롤 포커싱 효과
+            const rect = mapCanvas.getBoundingClientRect();
+            const cx = rect.left + rect.width * target.x/100;
+            const cy = rect.top + rect.height * target.y/100;
+            window.scrollTo({ top: Math.max(0, window.scrollY + cy - window.innerHeight/2), behavior: 'smooth' });
+          }
+        }
+      });
+
+      function focusRegion(name){
+        // 지역별 핀 데이터 생성
+        const regionalData = {
+          '서울': [
+            { x: 46, y: 36, title: '경복궁', url: 'https://images.unsplash.com/photo-1576010198627-0118b5b6c01c?w=400' },
+            { x: 48, y: 34, title: '남산타워', url: 'https://images.unsplash.com/photo-1571872901437-6e8419c94ad7?w=400' },
+            { x: 44, y: 38, title: '한강공원', url: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=400' },
+          ],
+          '부산': [
+            { x: 65, y: 75, title: '해운대', url: 'https://images.unsplash.com/photo-1606660585005-8c2f2740d37a?w=400' },
+            { x: 63, y: 73, title: '감천문화마을', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400' },
+            { x: 67, y: 76, title: '광안리', url: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400' },
+          ],
+          '제주': [
+            { x: 48, y: 92, title: '성산일출봉', url: 'https://images.unsplash.com/photo-1519060825752-c7aaf69de7a7?w=400' },
+            { x: 40, y: 90, title: '협재해수욕장', url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400' },
+            { x: 45, y: 95, title: '한라산', url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400' },
+          ],
+        };
+        // 지역별 핀으로 교체 (랜덤 위치)
+        if(regionalData[name]){
+          pins = regionalData[name].map(spot => ({
+            ...spot,
+            x: 20 + Math.random() * 60, // 20~80% 범위
+            y: 20 + Math.random() * 60, // 20~80% 범위
+          }));
+        } else {
+          pins = [...originalPins];
+        }
+        renderPins(null);
+        renderHotelCards();
+      }
+
+      // 지도 드래그 가능 바텀시트
+      const mapSheet = document.getElementById('map-sheet');
+      const mapSheetHandle = document.getElementById('map-sheet-handle');
+      const mapSheetList = document.getElementById('map-sheet-list');
+      // 펼치기 버튼 제거됨
+      let isDragging = false;
+      let startY = 0, startHeight = 0, lastY = 0;
+      const PEEK_H = 70; // 하단바 근처 핸들만 보이는 높이
+      const MIN_H = 200;
+      function getMaxH(){
+        // 검색 입력 박스 하단 직전까지 제한
+        const search = document.querySelector('.map-search');
+        const rect = search ? search.getBoundingClientRect() : { bottom: 110 };
+        const stopY = (rect.bottom || 110) + 6;
+        return Math.max(MIN_H + 1, Math.floor(window.innerHeight - stopY));
+      }
+      
+      function openSheet(){
+        const MAX_H = getMaxH();
+        mapSheet.classList.add('open');
+        // 탄성 오버슈트: 살짝 넘겼다가 복귀
+        mapSheet.style.height = (MAX_H + 12) + 'px';
+        setTimeout(() => { mapSheet.style.height = MAX_H + 'px'; }, 120);
+        // 펼칠 때 스크롤을 맨 위로 이동
+        const content = mapSheet.querySelector('.content');
+        if(content) content.scrollTop = 0;
+      }
+      function closeSheet(){
+        mapSheet.classList.remove('open');
+        mapSheet.style.height = MIN_H + 'px';
+        
+      }
+      
+      if(mapSheetHandle){
+        mapSheetHandle.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startY = e.clientY;
+          lastY = e.clientY;
+          const MAX_H = getMaxH();
+          startHeight = mapSheet.classList.contains('open') ? MAX_H : (parseInt(getComputedStyle(mapSheet).height) || MIN_H);
+          e.preventDefault();
+        });
+      }
+      document.addEventListener('mousemove', (e) => {
+        if(!isDragging) return;
+        lastY = e.clientY;
+        const dy = startY - e.clientY;
+        const MAX_H = getMaxH();
+        const newHeight = Math.max(PEEK_H, Math.min(MAX_H, startHeight + dy));
+        mapSheet.style.height = newHeight + 'px';
+      });
+      document.addEventListener('mouseup', () => {
+        if(!isDragging) return;
+        isDragging = false;
+        const dy = startY - lastY;
+        const current = parseInt(getComputedStyle(mapSheet).height);
+        const MAX_H = getMaxH();
+        if(dy > 20){
+          // 위로 드래그: 시작 위치에 따라 단계 상승
+          if(startHeight <= MIN_H - 40){
+            // 피크에서 올리면 중간까지만
+            mapSheet.style.height = MIN_H + 'px';
+          } else {
+            openSheet();
+          }
+          renderHotelCards();
+          return;
+        }
+        // 아래로 드래그: 현재 위치에 따라 MIN -> PEEK 두 단계 하향
+        if(current > MIN_H + 20){
+          mapSheet.style.height = MIN_H + 'px';
+        } else {
+          mapSheet.style.height = PEEK_H + 'px';
+        }
+        // 접힌 상태에서는 버튼 제거를 위해 재렌더
+        renderHotelCards();
+      });
+
+      // 창 크기 변경 시 최대 높이 재계산
+      window.addEventListener('resize', () => {
+        if(mapSheet.classList.contains('open')){
+          mapSheet.style.height = getMaxH() + 'px';
+        }
+      });
+
+      function renderHotelCards(){
+        mapSheetList.innerHTML = '';
+        const currentH = parseInt(getComputedStyle(mapSheet).height);
+        // 하단(피크)에서만 숨김, 중간/최대에서는 노출
+        if(currentH <= PEEK_H + 5){
+          // 하단 피크 상태: 흰 여백을 표현
+          const pad = document.createElement('div');
+          pad.style.cssText = 'height:20px;background:#fff;';
+          mapSheetList.appendChild(pad);
+          return;
+        }
+        if(window.__pinDetail){
+          // 프리뷰(중간) + 상세(최대)
+          const backWrap = document.createElement('div');
+          backWrap.style.cssText='padding:10px 16px; display:flex; justify-content:flex-start;';
+          const backBtn = document.createElement('button');
+          backBtn.textContent = '←';
+          backBtn.style.cssText='border:none;background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;';
+          backBtn.addEventListener('click', () => { window.__pinDetail = null; renderHotelCards(); });
+          backWrap.appendChild(backBtn);
+          mapSheetList.appendChild(backWrap);
+          const thumb = document.createElement('div'); thumb.className = 'thumb';
+          const im = document.createElement('img'); im.src = window.__pinDetail.url; attachFallback(im); thumb.appendChild(im);
+          mapSheetList.appendChild(thumb);
+          if(mapSheet.classList.contains('open')){
+            const body = document.createElement('div'); body.className='body';
+            const title = document.createElement('div'); title.style.cssText='font-size:16px;font-weight:700;'; title.textContent = window.__pinDetail.title || '선택한 장소';
+            body.appendChild(title);
+            const chips = document.createElement('div'); chips.className='chips';
+            ['#여행','#사진스팟'].forEach(t=>{ const c=document.createElement('div'); c.className='chip'; c.textContent=t; chips.appendChild(c); });
+            body.appendChild(chips);
+            const note = document.createElement('div'); note.style.cssText='color:#333;line-height:20px;margin-top:8px;'; note.textContent='이 지역의 베스트 포인트를 담았어요.';
+            body.appendChild(note);
+            mapSheetList.appendChild(body);
+          }
+        } else {
+          // 콜라주
+          const grid = document.createElement('div');
+          grid.className = 'collage-grid';
+          pins.forEach((pin, idx) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'image-wrapper';
+            wrapper.addEventListener('click', () => {
+              window.__pinDetail = { url: pin.url, title: pin.title, hashtags: ['#여행', '#사진스팟'], note: '사용자 노트입니다.' };
+              openSheet();
+              renderHotelCards();
+            });
+            const img = document.createElement('img');
+            img.src = pin.url;
+            img.alt = pin.title;
+            attachFallback(img);
+            wrapper.appendChild(img);
+            grid.appendChild(wrapper);
+          });
+          mapSheetList.appendChild(grid);
+        }
+
+        // 지도보기 버튼 - 스크롤 끝 (펼친 상태에서만 보임)
+        if(mapSheet.classList.contains('open')){
+          const btnWrapper = document.createElement('div');
+          btnWrapper.style.cssText = 'padding:30px 20px;text-align:center;';
+          const btn = document.createElement('button');
+          btn.textContent = '지도보기';
+          btn.style.cssText = 'background:#FF7A1A;color:#fff;border:none;border-radius:25px;padding:12px 60px;font-size:16px;font-weight:600;cursor:pointer;';
+          btn.addEventListener('click', () => {
+            closeSheet();
+            window.__pinDetail = null;
+            pins = [...originalPins];
+            renderPins(null);
+            renderHotelCards();
+          });
+          btnWrapper.appendChild(btn);
+          mapSheetList.appendChild(btnWrapper);
+        }
+      }
+      renderHotelCards();
+      
+      // 버튼 없음: 드래그만 사용
+
+      // 프로필 뱃지
+      const badgeWrap = document.getElementById('profile-badges');
+      if(badgeWrap){
+        const badges = [
+          { id: 'local', label: '지역 현지인', color: '#4CAF50' },
+          { id: 'traveler', label: '여행광', color: '#FF7A1A' },
+          { id: 'eastwest', label: '동해번쩍 서해번쩍', color: '#3B82F6' },
+          { id: 'walker', label: '걷기러버', color: '#8B5CF6' },
+          { id: 'foodie', label: '맛집헌터', color: '#EF4444' },
+        ];
+        badges.forEach(b => {
+          const chip = document.createElement('div');
+          chip.className = 'chip';
+          chip.style.display = 'inline-flex';
+          chip.style.alignItems = 'center';
+          chip.style.gap = '8px';
+          const dot = document.createElement('span');
+          dot.style.cssText = `width:8px;height:8px;border-radius:4px;background:${b.color};display:inline-block;`;
+          const text = document.createElement('span');
+          text.textContent = b.label;
+          chip.appendChild(dot); chip.appendChild(text);
+          chip.addEventListener('click', () => openRegion(b.label));
+          badgeWrap.appendChild(chip);
+        });
+      }
+
+      // 프로필 그리드 샘플 이미전전
+      const profileGrid = document.getElementById('profile-grid');
+      const profileImgs = Array.from({ length: 12 }, (_, i) => `https://source.unsplash.com/random/600x600?sig=${i+1}&travel`);
+      profileImgs.forEach(src => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const im = document.createElement('img'); im.src = src; attachFallback(im); cell.appendChild(im);
+        profileGrid.appendChild(cell);
+      });
+
+      // 프로필 그리드 클릭 시 사진 상세로 이동
+      profileGrid.addEventListener('click', (e) => {
+        const img = e.target.closest('img');
+        if(!img) return;
+        openPhotoDetail({ url: img.getAttribute('src'), location: '내 갤러리', tags: ['#내사진'], note: '내 프로필에서 올린 사진입니다.' });
+      });
+
+      document.addEventListener('scroll', () => {
+        if(!screens.trending.classList.contains('active')) return;
+        const nearBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 200;
+        if(nearBottom){ addItems(12); }
+      });
+    </script>
+</body>
+</html>
+
